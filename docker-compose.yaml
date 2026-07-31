@@ -10,7 +10,7 @@ services:
         MYSQL_USER: ${MYSQL_USER:-statususer}
         MYSQL_PASSWORD: ${MYSQL_PASSWORD:-statuspass}
       ports:
-        - "3306:3306"
+        - "${MYSQL_HOST_PORT:-3306}:3306"
       healthcheck:
         test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
         interval: 10s
@@ -34,7 +34,7 @@ services:
         DB_PASSWORD: ${MYSQL_PASSWORD:-statuspass}
         ALERT_SERVICE_URL: ${ALERT_SERVICE_URL:-http://alerting:8000/alert}
       ports:
-      - "8080:8080"
+      - "${MONITORING_HOST_PORT:-8080}:8080"
       depends_on:
         mysql:
           condition: service_healthy
@@ -55,7 +55,7 @@ services:
         ALERT_RECIPIENT_EMAIL: ${ALERT_RECIPIENT_EMAIL:-admin@example.com}
         SMTP_MOCK_MODE: ${SMTP_MOCK_MODE:-true}
       ports:
-      - "8000:8000"
+      - "${ALERTING_HOST_PORT:-8000}:8000"
       networks:
       - app_network
 
@@ -64,10 +64,10 @@ services:
         context: ./frontend
         dockerfile: Dockerfile
         args:
-          VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8080}
+          VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:${MONITORING_HOST_PORT:-8080}}
       container_name: frontend_container
       ports:
-        - "3000:8080"
+        - "${FRONTEND_HOST_PORT:-3000}:8080"
       depends_on:
         monitoring:
           condition: service_started

@@ -1,5 +1,5 @@
 import logging
-from fastapi import FastAPI, BackgroundTasks, HttpStatus, status
+from fastapi import FastAPI, BackgroundTasks, status
 from fastapi.middleware.cors import CORSMiddleware
 from app.schemas import AlertPayload, AlertResponse
 from app.services.email_service import send_email_notification
