@@ -34,7 +34,7 @@ services:
         DB_PASSWORD: ${MYSQL_PASSWORD:-statuspass}
         ALERT_SERVICE_URL: ${ALERT_SERVICE_URL:-http://alerting:8000/alert}
       ports:
-      - "${MONITORING_HOST_PORT:-8080}:8080"
+      - "8081:8080"
       depends_on:
         mysql:
           condition: service_healthy
