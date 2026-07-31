@@ -70,6 +70,7 @@ spec:
       containers:
         - name: monitoring
           image: statuspulse-monitoring:latest
+          imagePullPolicy: IfNotPresent
           resources:
             requests:
               cpu: "250m"
@@ -120,6 +121,7 @@ spec:
       containers:
         - name: alerting
           image: statuspulse-alerting:latest
+          imagePullPolicy: IfNotPresent
           resources:
             requests:
               cpu: "250m"
@@ -184,6 +186,7 @@ spec:
       containers:
         - name: frontend
           image: statuspulse-frontend:latest
+          imagePullPolicy: IfNotPresent
           resources:
             requests:
               cpu: "250m"
