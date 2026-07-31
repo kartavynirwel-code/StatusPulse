@@ -87,17 +87,17 @@ spec:
             - name: DB_NAME
               valueFrom:
                 secretKeyRef:
-                  name: mysql-secret
+                  name: my-secret
                   key: MYSQL_DATABASE
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
-                  name: mysql-secret
+                  name: my-secret
                   key: MYSQL_USER
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: mysql-secret
+                  name: my-secret
                   key: MYSQL_PASSWORD
             - name: ALERT_SERVICE_URL
               value: "http://statuspulse-alerting:8000/alert"
@@ -133,37 +133,37 @@ spec:
             - name: SMTP_HOST
               valueFrom:
                 secretKeyRef:
-                  name: alerting-secret
+                  name: my-secret
                   key: SMTP_HOST
             - name: SMTP_PORT
               valueFrom:
                 secretKeyRef:
-                  name: alerting-secret
+                  name: my-secret
                   key: SMTP_PORT
             - name: SMTP_USER
               valueFrom:
                 secretKeyRef:
-                  name: alerting-secret
+                  name: my-secret
                   key: SMTP_USER
             - name: SMTP_PASS
               valueFrom:
                 secretKeyRef:
-                  name: alerting-secret
+                  name: my-secret
                   key: SMTP_PASS
             - name: SMTP_FROM_EMAIL
               valueFrom:
                 secretKeyRef:
-                  name: alerting-secret
+                  name: my-secret
                   key: SMTP_FROM_EMAIL
             - name: ALERT_RECIPIENT_EMAIL
               valueFrom:
                 secretKeyRef:
-                  name: alerting-secret
+                  name: my-secret
                   key: ALERT_RECIPIENT_EMAIL
             - name: SMTP_MOCK_MODE
               valueFrom:
                 secretKeyRef: 
-                  name: alerting-secret
+                  name: my-secret
                   key: SMTP_MOCK_MODE
 
 ---
