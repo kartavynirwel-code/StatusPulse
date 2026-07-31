@@ -1,0 +1,215 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: statuspulse-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: statuspulse-db
+  template:
+    metadata:
+      labels:
+        app: statuspulse-db
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.0
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_ROOT_PASSWORD
+            - name: MYSQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_DATABASE
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_USER
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_PASSWORD
+          ports:
+            - containerPort: 3306
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
+          volumeMounts:
+            - name: mysql-data
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: mysql-data
+          persistentVolumeClaim:
+            claimName: mysql-pvc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: statuspulse-monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: statuspulse-monitoring
+  template:
+    metadata:
+      labels:
+        app: statuspulse-monitoring
+    spec:
+      containers:
+        - name: monitoring
+          image: statuspulse-monitoring:latest
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DB_HOST
+              value: "db-service"
+            - name: DB_PORT
+              value: "3306"
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_DATABASE
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_PASSWORD
+            - name: ALERT_SERVICE_URL
+              value: "http://statuspulse-alerting:8000/alert"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: statuspulse-alerting
+spec:
+  replicas: 1
+  selector: 
+    matchLabels:
+      app: statuspulse-alerting
+  template:
+    metadata:
+      labels:
+        app: statuspulse-alerting
+    spec:
+      containers:
+        - name: alerting
+          image: statuspulse-alerting:latest
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
+          ports:
+            - containerPort: 8000
+          env:
+            - name: SMTP_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: alerting-secret
+                  key: SMTP_HOST
+            - name: SMTP_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: alerting-secret
+                  key: SMTP_PORT
+            - name: SMTP_USER
+              valueFrom:
+                secretKeyRef:
+                  name: alerting-secret
+                  key: SMTP_USER
+            - name: SMTP_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: alerting-secret
+                  key: SMTP_PASS
+            - name: SMTP_FROM_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: alerting-secret
+                  key: SMTP_FROM_EMAIL
+            - name: ALERT_RECIPIENT_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: alerting-secret
+                  key: ALERT_RECIPIENT_EMAIL
+            - name: SMTP_MOCK_MODE
+              valueFrom:
+                secretKeyRef: 
+                  name: alerting-secret
+                  key: SMTP_MOCK_MODE
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: statuspulse-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: statuspulse-frontend
+  template:
+    metadata:
+      labels:
+        app: statuspulse-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: statuspulse-frontend:latest
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
+          ports:
+            - containerPort: 8080
+          env:
+            - name: VITE_API_BASE_URL
+              value: "http://statuspulse-monitoring:8080"
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pvc
+spec:
+  resources:
+    requests:
+      storage: 1Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+
+          
+              
+          
