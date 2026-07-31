@@ -44,6 +44,6 @@ spec:
     app: statuspulse-frontend
   ports:
     - protocol: TCP
-      port: 3000
+      port: 8080
       nodePort: 30080
   type: NodePort
