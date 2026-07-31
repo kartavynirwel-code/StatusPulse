@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+    mysql:
+      image: mysql:8.0
+      container_name: mysql_container
+      environment:
+        MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-secretpassword}
+        MYSQL_DATABASE: ${MYSQL_DATABASE:-statuspulse}
+        MYSQL_USER: ${MYSQL_USER:-statususer}
+        MYSQL_PASSWORD: ${MYSQL_PASSWORD:-statuspass}
+      ports:
+        - "3306:3306"
+      healthcheck:
+        test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+        interval: 10s
+        timeout: 5s
+        retries: 5
+      volumes:
+      - mysql_data:/var/lib/mysql
+      networks:
+      - app_network
+
+    monitoring:
+      build:
+        context: ./monitor-service
+        dockerfile: Dockerfile
+      container_name: monitoring_container
+      environment:
+        DB_HOST: mysql
+        DB_PORT: 3306
+        DB_NAME: ${MYSQL_DATABASE:-statuspulse}
+        DB_USER: ${MYSQL_USER:-statususer}
+        DB_PASSWORD: ${MYSQL_PASSWORD:-statuspass}
+        ALERT_SERVICE_URL: ${ALERT_SERVICE_URL:-http://alerting:8000/alert}
+      ports:
+      - "8080:8080"
+      depends_on:
+        mysql:
+          condition: service_healthy
+      networks:
+      - app_network
+
+    alerting:
+      build:
+        context: ./alert-service
+        dockerfile: Dockerfile
+      container_name: alerting_container
+      environment:
+        SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+        SMTP_PORT: ${SMTP_PORT:-587}
+        SMTP_USER: ${SMTP_USER:-alerts@example.com}
+        SMTP_PASS: ${SMTP_PASS:-supersecretpassword}
+        SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-alerts@example.com}
+        ALERT_RECIPIENT_EMAIL: ${ALERT_RECIPIENT_EMAIL:-admin@example.com}
+        SMTP_MOCK_MODE: ${SMTP_MOCK_MODE:-true}
+      ports:
+      - "8000:8000"
+      networks:
+      - app_network
+
+    frontend:
+      build:
+        context: ./frontend
+        dockerfile: Dockerfile
+        args:
+          VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8080}
+      container_name: frontend_container
+      ports:
+        - "3000:8080"
+      depends_on:
+        monitoring:
+          condition: service_started
+      networks:
+      - app_network
+
+volumes:
+  mysql_data:
+
+networks:
+  app_network:
+      driver: bridge
